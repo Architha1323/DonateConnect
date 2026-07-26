@@ -1,0 +1,263 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ─────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  DONOR
+  NGO
+  BENEFICIARY
+  ADMIN
+}
+
+enum DonationStatus {
+  PENDING
+  ACCEPTED
+  PICKUP_SCHEDULED
+  COLLECTED
+  RECEIVED
+  DISTRIBUTED
+  COMPLETED
+  CANCELLED
+}
+
+enum ItemCategory {
+  CLOTHES
+  BOOKS
+  TOYS
+  FURNITURE
+  KITCHEN
+  ELECTRONICS
+  STATIONERY
+  HOUSEHOLD
+  OTHER
+}
+
+enum ItemCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  WORN
+}
+
+enum NgoVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum PickupStatus {
+  SCHEDULED
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+}
+
+enum RequestStatus {
+  OPEN
+  IN_PROGRESS
+  FULFILLED
+  CLOSED
+}
+
+enum NotificationType {
+  DONATION_CREATED
+  DONATION_ACCEPTED
+  DONATION_STATUS_UPDATE
+  PICKUP_SCHEDULED
+  PICKUP_COMPLETED
+  NGO_VERIFIED
+  REQUEST_UPDATE
+  SYSTEM
+}
+
+// ─── Models ────────────────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(uuid())
+  authId        String?  @unique // Supabase auth user id
+  name          String
+  email         String   @unique
+  password      String?  // nullable for OAuth users
+  phone         String?
+  avatar        String?
+  role          UserRole @default(DONOR)
+  address       String?
+  city          String?
+  state         String?
+  zipCode       String?
+  isVerified    Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  donations     Donation[]
+  ngo           Ngo?
+  beneficiary   Beneficiary?
+  notifications Notification[]
+  complaints    Complaint[]
+  statusChanges StatusHistory[] @relation("ChangedByUser")
+}
+
+model Ngo {
+  id                   String                @id @default(uuid())
+  userId               String                @unique
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ngoName              String
+  registrationNumber   String                @unique
+  description          String?
+  website              String?
+  logo                 String?
+  address              String
+  city                 String
+  state                String
+  zipCode              String?
+  verificationStatus   NgoVerificationStatus @default(PENDING)
+  verifiedAt           DateTime?
+  categories           ItemCategory[]        @default([])
+  capacity             Int                   @default(100)
+  currentLoad          Int                   @default(0)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  acceptedDonations    Donation[]
+  beneficiaries        Beneficiary[]
+  inventory            Inventory[]
+}
+
+model Beneficiary {
+  id             String          @id @default(uuid())
+  userId         String          @unique
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ngoId          String?
+  ngo            Ngo?            @relation(fields: [ngoId], references: [id])
+  householdSize  Int?
+  needCategory   ItemCategory[]  @default([])
+  description    String?
+  isVerified     Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  requests       BeneficiaryRequest[]
+}
+
+model Donation {
+  id            String         @id @default(uuid())
+  donorId       String
+  donor         User           @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  ngoId         String?
+  ngo           Ngo?           @relation(fields: [ngoId], references: [id])
+  status        DonationStatus @default(PENDING)
+  notes         String?
+  totalItems    Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  items          DonationItem[]
+  pickupRequest  PickupRequest?
+  statusHistory  StatusHistory[]
+}
+
+model DonationItem {
+  id           String        @id @default(uuid())
+  donationId   String
+  donation     Donation      @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  itemName     String
+  category     ItemCategory
+  quantity     Int           @default(1)
+  condition    ItemCondition @default(GOOD)
+  description  String?
+  imageUrl     String?
+  createdAt    DateTime      @default(now())
+}
+
+model PickupRequest {
+  id             String       @id @default(uuid())
+  donationId     String       @unique
+  donation       Donation     @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  address        String
+  city           String
+  state          String
+  zipCode        String?
+  landmark       String?
+  scheduledDate  DateTime
+  scheduledTime  String?
+  contactPhone   String
+  status         PickupStatus @default(SCHEDULED)
+  notes          String?
+  completedAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model StatusHistory {
+  id           String         @id @default(uuid())
+  donationId   String
+  donation     Donation       @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  fromStatus   DonationStatus?
+  toStatus     DonationStatus
+  notes        String?
+  changedById  String?
+  changedBy    User?          @relation("ChangedByUser", fields: [changedById], references: [id])
+  changedAt    DateTime       @default(now())
+}
+
+model BeneficiaryRequest {
+  id              String        @id @default(uuid())
+  beneficiaryId   String
+  beneficiary     Beneficiary   @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  category        ItemCategory
+  quantity        Int           @default(1)
+  description     String?
+  status          RequestStatus @default(OPEN)
+  fulfilledAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Inventory {
+  id             String        @id @default(uuid())
+  ngoId          String
+  ngo            Ngo           @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  itemName       String
+  category       ItemCategory
+  quantity       Int           @default(0)
+  condition      ItemCondition @default(GOOD)
+  receivedDate   DateTime      @default(now())
+  expiryDate     DateTime?
+  status         String        @default("available") // available, allocated, distributed
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+}
+
+model Complaint {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  name        String
+  email       String
+  subject     String
+  message     String
+  status      String   @default("open") // open, in_progress, resolved, closed
+  response    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
