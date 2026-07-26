@@ -71,7 +71,7 @@ export async function createDonation(data: {
     // Notify admin
     const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
     await prisma.notification.createMany({
-      data: admins.map((admin) => ({
+      data: admins.map((admin: any) => ({
         userId: admin.id,
         type: 'DONATION_CREATED' as any,
         title: 'New Donation',
