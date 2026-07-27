@@ -48,8 +48,8 @@ export async function POST(req: Request) {
         
         if (dbUser.donations.length > 0) {
           liveDataSummary += `## Recent Donations:\n`;
-          dbUser.donations.forEach(d => {
-            const items = d.items.map(i => `${i.quantity}x ${i.itemName}`).join(', ');
+          dbUser.donations.forEach((d: any) => {
+            const items = d.items.map((i: any) => `${i.quantity}x ${i.itemName}`).join(', ');
             liveDataSummary += `- Donation ID: ${d.id.substring(0, 8)}... | Status: ${d.status} | Items: ${items} | Assigned NGO: ${d.ngo ? d.ngo.ngoName : 'Unassigned'} | Created: ${d.createdAt.toISOString().split('T')[0]}\n`;
           });
         } else {
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
 
         if (dbUser.notifications.length > 0) {
           liveDataSummary += `\n## Unread Notifications:\n`;
-          dbUser.notifications.forEach(n => {
+          dbUser.notifications.forEach((n: any) => {
             liveDataSummary += `- ${n.title}: ${n.message}\n`;
           });
         }
