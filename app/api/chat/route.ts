@@ -106,7 +106,7 @@ ${liveDataSummary}
     });
 
     // OpenRouter strict validation: Filter empty messages and ensure it doesn't start with an assistant message.
-    let validMessages = messages.filter((m: any) => m.content.trim() !== '');
+    const validMessages = messages.filter((m: Record<string, string>) => m.content && m.content.trim() !== '');
     if (validMessages.length > 0 && validMessages[0].role === 'assistant') {
       validMessages.shift();
     }

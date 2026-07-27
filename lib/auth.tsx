@@ -19,7 +19,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('token');
+    return null;
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshUser = useCallback(async () => {
@@ -35,14 +38,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      setToken(storedToken);
+    if (token) {
       refreshUser().finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
     }
-  }, [refreshUser]);
+  }, [refreshUser, token]);
 
   const login = async (email: string, password: string) => {
     const res = await api.post('/auth/login', { email, password });

@@ -47,7 +47,7 @@ export default function DonatePage() {
         .catch((err: any) => console.error(err))
         .finally(() => setLoadingNgos(false));
     }
-  }, [step]);
+  }, [step, ngos.length]);
 
   const updateItem = (index: number, field: keyof DonationItemForm, value: any) => {
     const updated = [...items];

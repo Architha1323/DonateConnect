@@ -19,7 +19,7 @@ export default function NgosPage() {
     const fetchNgos = async () => {
       setLoading(true);
       const res = await getNgos({ status: 'VERIFIED', search, location });
-      if (!res.error) setNgos(res.ngos as any);
+      if (!res.error && res.ngos) setNgos(res.ngos as Ngo[]);
       setLoading(false);
     };
     const timeoutId = setTimeout(fetchNgos, 500);

@@ -16,19 +16,12 @@ export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [hasUnread, setHasUnread] = useState(true);
-  const [messages, setMessages] = useState<{role: string, content: string, id: string}[]>([]);
+  const [messages, setMessages] = useState<{role: string, content: string, id: string}[]>([{
+    role: 'assistant',
+    content: `👋 **Welcome to DonateConnect!**\n\nI'm your Navigation Assistant. I don't use AI—I just help you get exactly where you need to go instantly! \n\nClick one of the buttons below or type what you're looking for.`,
+    id: 'welcome-msg'
+  }]);
   const [input, setInput] = useState('');
-
-  // Initial welcome message
-  useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([{
-        role: 'assistant',
-        content: `👋 **Welcome to DonateConnect!**\n\nI'm your Navigation Assistant. I don't use AI—I just help you get exactly where you need to go instantly! \n\nClick one of the buttons below or type what you're looking for.`,
-        id: 'welcome-msg'
-      }]);
-    }
-  }, [messages.length]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -69,7 +62,7 @@ export function Chatbot() {
     const q = query.toLowerCase();
     
     // Add user message
-    const userMessageId = Date.now().toString();
+    const userMessageId = crypto.randomUUID();
     setMessages(prev => [...prev, { role: 'user', content: query, id: userMessageId }]);
     setInput('');
 
@@ -124,7 +117,7 @@ export function Chatbot() {
       }
 
       // Add assistant response
-      setMessages(prev => [...prev, { role: 'assistant', content: response, id: (Date.now() + 1).toString() }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: response, id: crypto.randomUUID() }]);
 
       // Perform navigation if needed
       if (destination) {

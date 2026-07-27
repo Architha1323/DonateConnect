@@ -86,7 +86,7 @@ export function HeroSlider() {
 
   useEffect(() => {
     if (!emblaApi) return;
-    onSelect();
+    requestAnimationFrame(onSelect);
     emblaApi.on("select", onSelect);
     emblaApi.on("reInit", onSelect);
   }, [emblaApi, onSelect]);

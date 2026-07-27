@@ -47,8 +47,10 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
       <nav className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 transition-transform hover:scale-105 active:scale-95">
-          <Image src="/icon.png" alt="DonateConnect Logo" width={40} height={40} className="rounded-xl shadow-sm bg-white" />
-          <span className="text-xl font-bold text-foreground">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-sm">
+            <Heart className="h-5 w-5 text-white" fill="white" />
+          </div>
+          <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent hidden sm:inline-block">
             DonateConnect
           </span>
         </Link>

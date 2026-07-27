@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
 import { Donation, DonationStatus } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -16,25 +16,29 @@ export default function NgoDonationsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 
-  const fetchDonations = async () => {
+  const fetchDonations = useCallback(async () => {
     try {
-      const params: any = { limit: 50 };
+      const params: { limit: number; status?: string } = { limit: 50 };
       if (filter !== 'all') params.status = filter;
-      const res = await api.get('/donations', { params });
+      const res = await api.get('/donations', { params: params as Record<string, unknown> });
       setDonations(res.data.data || []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [filter]);
 
-  useEffect(() => { fetchDonations(); }, [filter]);
+  useEffect(() => {
+    const timer = setTimeout(() => { fetchDonations(); }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchDonations]);
 
   const handleAccept = async (donationId: string) => {
     try {
       await api.post(`/donations/${donationId}/accept`);
       toast.success('Donation accepted!');
       fetchDonations();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to accept');
+    } catch (error: unknown) {
+      const err = error as Error;
+      toast.error(err.message || 'Failed to accept');
     }
   };
 
@@ -43,8 +47,9 @@ export default function NgoDonationsPage() {
       await api.patch(`/donations/${donationId}/status`, { status });
       toast.success('Status updated!');
       fetchDonations();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update');
+    } catch (error: unknown) {
+      const err = error as Error;
+      toast.error(err.message || 'Failed to update');
     }
   };
 
@@ -57,7 +62,7 @@ export default function NgoDonationsPage() {
           <h1 className="text-3xl font-bold">Donations</h1>
           <p className="text-muted-foreground">Accept and manage donation requests</p>
         </div>
-        <Select value={filter} onValueChange={(val: any) => setFilter(val)}>
+        <Select value={filter} onValueChange={(val) => val && setFilter(val)}>
           <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
