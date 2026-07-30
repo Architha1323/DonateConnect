@@ -43,14 +43,20 @@ const api = {
     if (url === '/auth/login') {
       data = await authActions.signIn(body);
       if (data.error) throw new Error(data.error);
-      // Mock returning user and token for AuthProvider
-      const user = await authActions.getCurrentUser();
+      
+      // Fetch user directly from DB since cookies aren't available in the same request yet
+      const { prisma } = await import('@/lib/prisma');
+      const user = await prisma.user.findUnique({ 
+        where: { email: body.email },
+        include: { ngo: true, beneficiary: true }
+      });
       return { data: { data: { user, token: 'mock-token' } } };
     } else if (url === '/auth/register') {
       data = await authActions.signUp(body);
       if (data.error) throw new Error(data.error);
-      const user = await authActions.getCurrentUser();
-      return { data: { data: { user, token: 'mock-token' } } };
+      
+      // signUp returns the user directly
+      return { data: { data: { user: data.user, token: 'mock-token' } } };
     } else if (url === '/donations') {
       data = await donationsActions.createDonation(body);
       if (data.error) throw new Error(data.error);
