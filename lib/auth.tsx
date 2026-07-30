@@ -38,12 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (token) {
-      refreshUser().finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
-    }
-  }, [refreshUser, token]);
+    // Always attempt to refresh the user session on mount, as OAuth logins 
+    // set server cookies without touching localStorage tokens.
+    refreshUser().finally(() => setIsLoading(false));
+  }, [refreshUser]);
 
   const login = async (email: string, password: string) => {
     const res = await api.post('/auth/login', { email, password });
