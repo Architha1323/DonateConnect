@@ -47,6 +47,9 @@ const api = {
       // Fetch user directly from DB via Server Action since cookies aren't available yet
       const user = await authActions.getUserByEmail(body.email);
       return { data: { data: { user, token: 'mock-token' } } };
+    } else if (url === '/auth/logout') {
+      await authActions.signOut();
+      return { data: { success: true } };
     } else if (url === '/auth/register') {
       data = await authActions.signUp(body);
       if (data.error) throw new Error(data.error);

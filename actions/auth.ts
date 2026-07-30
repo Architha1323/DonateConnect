@@ -153,7 +153,6 @@ export async function signOut() {
   await supabase.auth.signOut();
   const cookieStore = await cookies();
   cookieStore.delete('demo_role_override');
-  redirect('/login');
 }
 
 export async function resetPassword(email: string) {
