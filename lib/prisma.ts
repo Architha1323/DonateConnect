@@ -13,6 +13,7 @@ const pool = globalForPrisma.pool ?? new Pool({
   connectionString,
   max: 10, // Limit pool size to avoid exhausting Supabase connections
   idleTimeoutMillis: 30000,
+  ssl: connectionString?.includes('localhost') ? false : { rejectUnauthorized: false },
 });
 const adapter = new PrismaPg(pool);
 
