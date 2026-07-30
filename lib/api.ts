@@ -44,12 +44,8 @@ const api = {
       data = await authActions.signIn(body);
       if (data.error) throw new Error(data.error);
       
-      // Fetch user directly from DB since cookies aren't available in the same request yet
-      const { prisma } = await import('@/lib/prisma');
-      const user = await prisma.user.findUnique({ 
-        where: { email: body.email },
-        include: { ngo: true, beneficiary: true }
-      });
+      // Fetch user directly from DB via Server Action since cookies aren't available yet
+      const user = await authActions.getUserByEmail(body.email);
       return { data: { data: { user, token: 'mock-token' } } };
     } else if (url === '/auth/register') {
       data = await authActions.signUp(body);
