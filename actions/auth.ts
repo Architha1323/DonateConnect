@@ -266,8 +266,30 @@ export async function ensureDbUser() {
 }
 
 export async function getUserByEmail(email: string) {
-  return await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { email },
     include: { ngo: true, beneficiary: true },
   });
+
+  // Auto-create demo users on Vercel if they haven't run the seed script
+  if (!user && (email === 'rahul@example.com' || email === 'helping@example.com' || email === 'admin@donateconnect.com')) {
+    let role = 'DONOR';
+    if (email === 'helping@example.com') role = 'NGO';
+    if (email === 'admin@donateconnect.com') role = 'ADMIN';
+    
+    user = await prisma.user.create({
+      data: {
+        email,
+        name: email === 'admin@donateconnect.com' ? 'Admin User' : email.split('@')[0],
+        role: role as any,
+      },
+      include: { ngo: true, beneficiary: true },
+    });
+  }
+
+  if (!user) {
+    throw new Error('User profile not found. Please register first.');
+  }
+
+  return user;
 }
