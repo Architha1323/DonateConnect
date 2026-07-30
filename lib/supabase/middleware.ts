@@ -29,6 +29,8 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const isDemoUser = request.cookies.has('demo_role_override');
+
   // Public routes that don't require auth
   const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/about', '/contact', '/how-it-works', '/ngos', '/api/auth', '/api/chat'];
   const isPublicPath = publicPaths.some(
@@ -45,7 +47,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirect unauthenticated users from protected routes
-  if (!user && !isPublicPath) {
+  if (!user && !isDemoUser && !isPublicPath) {
     const url = request.nextUrl.clone();
     const redirectUrl = request.nextUrl.pathname + request.nextUrl.search;
     url.pathname = '/login';
