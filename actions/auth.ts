@@ -43,6 +43,12 @@ export async function signUp(formData: {
   }
 
   try {
+    // Check if user already exists in our database
+    const existingUser = await prisma.user.findUnique({ where: { email: formData.email } });
+    if (existingUser) {
+      return { error: 'An account with this email already exists. Please sign in.' };
+    }
+
     // Create user in our database
     const user = await prisma.user.create({
       data: {
