@@ -140,13 +140,15 @@ export async function signIn(formData: { email: string; password: string }) {
   return { success: true };
 }
 
-export async function signInWithGoogle(origin: string) {
+export async function signInWithGoogle(origin: string, role?: UserRole) {
   const supabase = await createClient();
+
+  const redirectTo = role ? `${origin}/api/auth/callback?role=${role}` : `${origin}/api/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${origin}/api/auth/callback`,
+      redirectTo,
     },
   });
 
@@ -277,16 +279,23 @@ export async function ensureDbUser() {
 
   // Auto-create user in DB if they authenticated via OAuth but don't exist in DB yet
   if (!dbUser) {
+    const intendedRole = cookieStore.get('oauth_intended_role')?.value;
+    const finalRole = intendedRole || (authUser.user_metadata?.role as any) || 'DONOR';
+
     dbUser = await prisma.user.create({
       data: {
         authId: authUser.id,
         name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
         email: authUser.email!,
-        role: (authUser.user_metadata?.role as any) || 'DONOR',
+        role: finalRole as any,
         avatar: authUser.user_metadata?.avatar_url || null,
       },
       include: { ngo: true, beneficiary: true },
     });
+
+    if (intendedRole) {
+      cookieStore.delete('oauth_intended_role');
+    }
   }
 
   return dbUser;

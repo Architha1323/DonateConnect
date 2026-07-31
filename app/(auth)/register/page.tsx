@@ -51,7 +51,7 @@ export default function RegisterPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      const res = await signInWithGoogle(window.location.origin);
+      const res = await signInWithGoogle(window.location.origin, role);
       if (res?.error) {
         toast.error(res.error);
         setIsLoading(false);
