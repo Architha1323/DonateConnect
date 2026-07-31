@@ -18,7 +18,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        try { return JSON.parse(stored); } catch { return null; }
+      }
+    }
+    return null;
+  });
   const [token, setToken] = useState<string | null>(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('token');
     return null;
@@ -38,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const res = await api.get('/auth/me');
       setUser(res.data.data);
+      localStorage.setItem('user', JSON.stringify(res.data.data));
     } catch {
       setUser(null);
       setToken(null);
