@@ -33,13 +33,13 @@ function LoginForm() {
       if (stored) {
         const user = JSON.parse(stored);
         if (redirectUrl) {
-          router.push(redirectUrl);
+          window.location.href = redirectUrl;
         } else {
           const paths: Record<string, string> = { DONOR: '/donor/dashboard', NGO: '/ngo/dashboard', ADMIN: '/admin/dashboard', BENEFICIARY: '/beneficiary/dashboard' };
-          router.push(paths[user.role] || '/');
+          window.location.href = paths[user.role] || '/';
         }
       } else {
-        router.push('/');
+        window.location.href = '/';
       }
     } catch (error: any) {
       toast.error(error.message || 'Login failed. Please check your credentials.');
