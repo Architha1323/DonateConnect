@@ -32,7 +32,7 @@ function LoginForm() {
       const stored = localStorage.getItem('user');
       if (stored) {
         const user = JSON.parse(stored);
-        if (redirectUrl) {
+        if (redirectUrl && redirectUrl !== 'null' && redirectUrl !== 'undefined' && redirectUrl.startsWith('/')) {
           window.location.href = redirectUrl;
         } else {
           const paths: Record<string, string> = { DONOR: '/donor/dashboard', NGO: '/ngo/dashboard', ADMIN: '/admin/dashboard', BENEFICIARY: '/beneficiary/dashboard' };
