@@ -288,16 +288,31 @@ export async function ensureDbUser() {
     const intendedRole = cookieStore.get('oauth_intended_role')?.value;
     const finalRole = intendedRole || (authUser.user_metadata?.role as any) || 'DONOR';
 
-    dbUser = await prisma.user.create({
-      data: {
-        authId: authUser.id,
-        name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
-        email: authUser.email!,
-        role: finalRole as any,
-        avatar: authUser.user_metadata?.avatar_url || null,
-      },
+    // First check if a user with this email ALREADY exists in the database.
+    const existingEmailUser = await prisma.user.findUnique({
+      where: { email: authUser.email! },
       include: { ngo: true, beneficiary: true },
     });
+
+    if (existingEmailUser) {
+      // Link the new Google OAuth ID to the existing account
+      dbUser = await prisma.user.update({
+        where: { id: existingEmailUser.id },
+        data: { authId: authUser.id },
+        include: { ngo: true, beneficiary: true },
+      });
+    } else {
+      dbUser = await prisma.user.create({
+        data: {
+          authId: authUser.id,
+          name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+          email: authUser.email!,
+          role: finalRole as any,
+          avatar: authUser.user_metadata?.avatar_url || null,
+        },
+        include: { ngo: true, beneficiary: true },
+      });
+    }
 
     if (intendedRole) {
       cookieStore.delete('oauth_intended_role');
