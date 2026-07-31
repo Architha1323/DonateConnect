@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, ArrowRight, Package, Truck, Building2, BarChart3, Users, Recycle, Shield, MapPin, Search, CheckCircle2 } from 'lucide-react';
+import { Heart, ArrowRight, Package, Truck, Building2, BarChart3, Users, Recycle, Shield, MapPin, Search, CheckCircle2, UserCircle, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { AnimatedCounter } from '@/components/ui/animated-counter';
@@ -137,6 +137,67 @@ export default function HomePage() {
                 </Card>
               </AnimatedSection>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Roles / Ecosystem Section */}
+      <section className="py-24 md:py-32 bg-muted/30 dark:bg-black/20 border-y border-border/50 relative overflow-hidden">
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col items-center text-center space-y-4 mb-16 max-w-3xl mx-auto">
+            <h2 className="text-4xl md:text-[52px] font-extrabold tracking-tight text-foreground leading-tight">
+              Our <span className="bg-gradient-to-r from-primary to-teal-400 bg-clip-text text-transparent">Ecosystem</span>
+            </h2>
+            <p className="text-lg md:text-xl text-muted-foreground">DonateConnect brings together passionate individuals and organizations to create a seamless giving experience.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <AnimatedSection delay={0.1}>
+              <Card className="h-full p-8 flex flex-col items-center text-center space-y-6 hover:-translate-y-2 transition-transform duration-300 border border-border/50 bg-card/80 backdrop-blur-xl shadow-xl hover:shadow-primary/10">
+                <div className="h-20 w-20 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2">
+                  <UserCircle className="h-10 w-10" />
+                </div>
+                <div className="space-y-3 flex-1">
+                  <h3 className="text-2xl font-bold">For Donors</h3>
+                  <p className="text-muted-foreground leading-relaxed">Give your items a second life. Schedule doorstep pickups and track exactly where your donations go.</p>
+                </div>
+                <Button variant="outline" asChild className="w-full mt-4 rounded-xl border-emerald-200 hover:bg-emerald-50 dark:border-emerald-900/50 dark:hover:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">
+                  <Link href="/register?role=DONOR">Join as Donor</Link>
+                </Button>
+              </Card>
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.2}>
+              <Card className="h-full p-8 flex flex-col items-center text-center space-y-6 hover:-translate-y-2 transition-transform duration-300 border border-border/50 bg-card/80 backdrop-blur-xl shadow-xl hover:shadow-blue-500/10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-3 bg-primary/10 rounded-bl-3xl text-xs font-bold text-primary">High Demand</div>
+                <div className="h-20 w-20 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2">
+                  <Building2 className="h-10 w-10" />
+                </div>
+                <div className="space-y-3 flex-1">
+                  <h3 className="text-2xl font-bold">For NGOs</h3>
+                  <p className="text-muted-foreground leading-relaxed">Expand your reach. Receive targeted donations, manage inventory, and fulfill your mission efficiently.</p>
+                </div>
+                <Button variant="outline" asChild className="w-full mt-4 rounded-xl border-blue-200 hover:bg-blue-50 dark:border-blue-900/50 dark:hover:bg-blue-900/20 text-blue-700 dark:text-blue-400">
+                  <Link href="/register?role=NGO">Register NGO</Link>
+                </Button>
+              </Card>
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.3}>
+              <Card className="h-full p-8 flex flex-col items-center text-center space-y-6 hover:-translate-y-2 transition-transform duration-300 border border-border/50 bg-card/80 backdrop-blur-xl shadow-xl hover:shadow-purple-500/10">
+                <div className="h-20 w-20 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-2">
+                  <Settings className="h-10 w-10" />
+                </div>
+                <div className="space-y-3 flex-1">
+                  <h3 className="text-2xl font-bold">For Admins</h3>
+                  <p className="text-muted-foreground leading-relaxed">Ensure a safe and effective ecosystem. Verify organizations and monitor platform-wide impact metrics.</p>
+                </div>
+                <Button variant="outline" asChild className="w-full mt-4 rounded-xl border-purple-200 hover:bg-purple-50 dark:border-purple-900/50 dark:hover:bg-purple-900/20 text-purple-700 dark:text-purple-400">
+                  <Link href="/login">Admin Portal</Link>
+                </Button>
+              </Card>
+            </AnimatedSection>
           </div>
         </div>
       </section>
