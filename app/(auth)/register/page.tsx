@@ -36,9 +36,11 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       await register({ name, email, password, phone: phone || undefined, role });
-      toast.success('Account created successfully!');
-      const paths: Record<string, string> = { DONOR: '/donor/dashboard', NGO: '/ngo/dashboard', ADMIN: '/admin/dashboard', BENEFICIARY: '/beneficiary/dashboard' };
-      router.push(paths[role] || '/');
+      toast.success('Account created! Redirecting...');
+      
+      sessionStorage.setItem('autoLoginEmail', email);
+      sessionStorage.setItem('autoLoginPassword', password);
+      router.push('/login?autoLogin=true');
     } catch (error: any) {
       toast.error(error.message || 'Registration failed');
     } finally {

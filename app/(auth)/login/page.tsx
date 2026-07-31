@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
@@ -22,6 +22,43 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect');
+  const autoLogin = searchParams.get('autoLogin');
+
+  useEffect(() => {
+    if (autoLogin === 'true') {
+      const savedEmail = sessionStorage.getItem('autoLoginEmail');
+      const savedPassword = sessionStorage.getItem('autoLoginPassword');
+      
+      if (savedEmail && savedPassword) {
+        setEmail(savedEmail);
+        setPassword(savedPassword);
+        sessionStorage.removeItem('autoLoginEmail');
+        sessionStorage.removeItem('autoLoginPassword');
+        
+        const performAutoLogin = async () => {
+          setIsLoading(true);
+          try {
+            await login(savedEmail, savedPassword);
+            toast.success('Logged in successfully!');
+            const stored = localStorage.getItem('user');
+            if (stored) {
+              const userObj = JSON.parse(stored);
+              const paths: Record<string, string> = { DONOR: '/donor/dashboard', NGO: '/ngo/dashboard', ADMIN: '/admin/dashboard', BENEFICIARY: '/beneficiary/dashboard' };
+              const roleKey = (userObj.role || '').toUpperCase();
+              window.location.href = paths[roleKey] || '/';
+            } else {
+              window.location.href = '/';
+            }
+          } catch (error: any) {
+            toast.error(error.message || 'Auto-login failed. Please sign in manually.');
+            setIsLoading(false);
+          }
+        };
+        
+        performAutoLogin();
+      }
+    }
+  }, [autoLogin, login]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
