@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import api from '@/lib/api';
 import { NotificationItem } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -44,10 +45,25 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (showToast = false) => {
     try {
       const res = await api.get('/notifications');
-      setNotifications(res.data.data || []);
+      const newNotifs = res.data.data || [];
+      
+      if (showToast) {
+        setNotifications((prev) => {
+          const prevIds = new Set(prev.map(n => n.id));
+          const trulyNew = newNotifs.filter((n: NotificationItem) => !prevIds.has(n.id) && !n.isRead);
+          
+          trulyNew.forEach((n: NotificationItem) => {
+            toast(n.title, { description: n.message });
+          });
+          return newNotifs;
+        });
+      } else {
+        setNotifications(newNotifs);
+      }
+      
       setUnreadCount(res.data.meta?.unreadCount || 0);
     } catch (e) {
       console.error('Failed to fetch notifications', e);
@@ -56,8 +72,11 @@ export default function Navbar() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      fetchNotifications();
-      // Polling could be added here
+      fetchNotifications(false);
+      const interval = setInterval(() => {
+        fetchNotifications(true);
+      }, 10000);
+      return () => clearInterval(interval);
     }
   }, [isAuthenticated, user]);
 
