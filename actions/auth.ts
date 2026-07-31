@@ -144,7 +144,7 @@ export async function signInWithGoogle(origin: string) {
   }
 
   if (data.url) {
-    redirect(data.url);
+    return { url: data.url };
   }
 }
 

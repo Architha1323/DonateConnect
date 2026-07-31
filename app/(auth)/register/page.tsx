@@ -49,7 +49,13 @@ export default function RegisterPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      await signInWithGoogle(window.location.origin);
+      const res = await signInWithGoogle(window.location.origin);
+      if (res?.error) {
+        toast.error(res.error);
+        setIsLoading(false);
+      } else if (res?.url) {
+        window.location.href = res.url;
+      }
     } catch (error: any) {
       toast.error('Google signup failed');
       setIsLoading(false);
