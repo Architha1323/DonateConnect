@@ -54,11 +54,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     if (password === 'password123') {
+      const cleanEmail = email.trim().toLowerCase();
       let role: UserRole | null = null;
-      if (email === 'admin@donateconnect.com') role = UserRole.ADMIN;
-      else if (email === 'rahul@example.com') role = UserRole.DONOR;
-      else if (email === 'helping@example.com') role = UserRole.NGO;
-      else if (email === 'beneficiary@example.com') role = UserRole.BENEFICIARY;
+      if (cleanEmail === 'admin@donateconnect.com') role = UserRole.ADMIN;
+      else if (cleanEmail === 'rahul@example.com') role = UserRole.DONOR;
+      else if (cleanEmail === 'helping@example.com') role = UserRole.NGO;
+      else if (cleanEmail === 'beneficiary@example.com') role = UserRole.BENEFICIARY;
 
       if (role) {
         const mockUser: User = {
@@ -77,6 +78,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(mockToken);
         localStorage.setItem('token', mockToken);
         localStorage.setItem('user', JSON.stringify(mockUser));
+        if (typeof document !== 'undefined') {
+          document.cookie = `demo_role_override=${role}; path=/; max-age=86400`;
+        }
         return;
       }
     }

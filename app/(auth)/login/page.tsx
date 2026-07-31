@@ -36,7 +36,8 @@ function LoginForm() {
           window.location.href = redirectUrl;
         } else {
           const paths: Record<string, string> = { DONOR: '/donor/dashboard', NGO: '/ngo/dashboard', ADMIN: '/admin/dashboard', BENEFICIARY: '/beneficiary/dashboard' };
-          window.location.href = paths[user.role] || '/';
+          const roleKey = (user.role || '').toUpperCase();
+          window.location.href = paths[roleKey] || '/';
         }
       } else {
         window.location.href = '/';
