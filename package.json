@@ -18,7 +18,7 @@
     "@ai-sdk/react": "^4.0.40",
     "@base-ui/react": "^1.6.0",
     "@hookform/resolvers": "^5.4.3",
-    "@prisma/adapter-pg": "^7.9.0",
+    "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.0",
     "@radix-ui/react-avatar": "^1.2.6",
     "@radix-ui/react-dialog": "^1.1.23",
