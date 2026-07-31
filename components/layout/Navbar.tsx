@@ -11,8 +11,12 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Heart, Menu, Sun, Moon, LogOut, User, LayoutDashboard, Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { UserRole } from '@/types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DonateButton } from '@/components/ui/donate-button';
+import { Badge } from '@/components/ui/badge';
+import api from '@/lib/api';
+import { NotificationItem } from '@/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -37,6 +41,46 @@ export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get('/notifications');
+      setNotifications(res.data.data);
+      setUnreadCount(res.data.meta.unreadCount);
+    } catch (e) {
+      console.error('Failed to fetch notifications', e);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchNotifications();
+      // Polling could be added here
+    }
+  }, [isAuthenticated, user]);
+
+  const handleNotificationClick = async (notif: NotificationItem) => {
+    if (!notif.isRead) {
+      try {
+        await api.patch(`/notifications/${notif.id}/read`);
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+        setNotifications((prev) => prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n)));
+      } catch (e) { console.error(e); }
+    }
+    if (notif.link) {
+      router.push(notif.link);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await api.patch('/notifications/read-all');
+      setUnreadCount(0);
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (e) { console.error(e); }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -75,9 +119,49 @@ export default function Navbar() {
               <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground font-medium">
                 <Link href={getDashboardPath(user.role)}>Dashboard</Link>
               </Button>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative">
-                <Bell className="h-5 w-5" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative" />}>
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-2 flex h-2 w-2 rounded-full bg-red-500 shadow-sm" />
+                  )}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80">
+                  <div className="flex items-center justify-between p-3 border-b">
+                    <p className="font-semibold text-sm">Notifications</p>
+                    {unreadCount > 0 && (
+                      <button onClick={handleMarkAllRead} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">Mark all as read</button>
+                    )}
+                  </div>
+                  <ScrollArea className="h-[300px]">
+                    {notifications.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground flex flex-col items-center">
+                        <Bell className="h-8 w-8 mb-2 opacity-20" />
+                        No notifications yet
+                      </div>
+                    ) : (
+                      <div className="flex flex-col">
+                        {notifications.map((notif) => (
+                          <div 
+                            key={notif.id} 
+                            onClick={() => handleNotificationClick(notif)}
+                            className={`p-3 border-b last:border-0 cursor-pointer transition-colors hover:bg-muted/50 ${!notif.isRead ? 'bg-emerald-50/30 dark:bg-emerald-950/20' : ''}`}
+                          >
+                            <div className="flex gap-3">
+                              {!notif.isRead && <div className="mt-1.5 h-2 w-2 rounded-full bg-emerald-500 shrink-0" />}
+                              <div className={notif.isRead ? 'ml-0' : ''}>
+                                <p className="text-sm font-semibold">{notif.title}</p>
+                                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notif.message}</p>
+                                <p className="text-[10px] text-muted-foreground mt-1">{new Date(notif.createdAt).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <DonateButton size="sm" className="hidden lg:flex rounded-lg px-4" showIcon={false} />
 
               <DropdownMenu>

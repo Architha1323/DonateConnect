@@ -3,6 +3,7 @@ import * as usersActions from '@/actions/users';
 import * as authActions from '@/actions/auth';
 import * as ngoActions from '@/actions/ngos';
 import * as beneficiaryActions from '@/actions/beneficiaries';
+import * as notificationActions from '@/actions/notifications';
 
 // A mock API client that redirects requests to Server Actions
 const api = {
@@ -32,6 +33,10 @@ const api = {
     } else if (url.split('?')[0] === '/ngos') {
       data = await ngoActions.getNgos(params);
       return { data: { data: data.ngos, meta: { total: data.total, totalPages: data.totalPages } } };
+    } else if (url === '/notifications') {
+      data = await notificationActions.getNotifications();
+      const unreadCount = await notificationActions.getUnreadCount();
+      return { data: { data: data.notifications, meta: { unreadCount } } };
     }
 
     return { data: { data } };
@@ -74,6 +79,13 @@ const api = {
     if (url.match(/\/donations\/[a-zA-Z0-9-]+\/status/)) {
       const id = url.split('/')[2];
       data = await donationsActions.updateDonationStatus(id, body.status);
+      if (data.error) throw new Error(data.error);
+    } else if (url.match(/\/notifications\/[a-zA-Z0-9-]+\/read/)) {
+      const id = url.split('/')[2];
+      data = await notificationActions.markNotificationRead(id);
+      if (data.error) throw new Error(data.error);
+    } else if (url === '/notifications/read-all') {
+      data = await notificationActions.markAllNotificationsRead();
       if (data.error) throw new Error(data.error);
     }
 

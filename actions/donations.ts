@@ -93,6 +93,20 @@ export async function createDonation(data: {
           }
         });
       }
+    } else {
+      // Notify all verified NGOs for open pool donations
+      const verifiedNgos = await prisma.ngo.findMany({ where: { verificationStatus: 'VERIFIED' } });
+      if (verifiedNgos.length > 0) {
+        await prisma.notification.createMany({
+          data: verifiedNgos.map(ngo => ({
+            userId: ngo.userId,
+            type: 'DONATION_CREATED' as any,
+            title: 'New Open Pool Donation',
+            message: `${user.name} created a new donation available in your area.`,
+            link: `/ngo/donations`,
+          })),
+        });
+      }
     }
 
     return { success: true, donation };
@@ -224,16 +238,40 @@ export async function updateDonationStatus(donationId: string, newStatus: string
       },
     });
 
-    // Notify donor
-    await prisma.notification.create({
-      data: {
-        userId: updated.donorId,
-        type: 'DONATION_STATUS_UPDATE' as any,
-        title: `Donation ${newStatus.replace('_', ' ').toLowerCase()}`,
-        message: `Your donation status has been updated to ${newStatus.replace('_', ' ').toLowerCase()}.`,
-        link: `/donor/donations/${donationId}`,
-      },
-    });
+    // Notify donor if they didn't make the change
+    if (user.id !== updated.donorId) {
+      let donorMessage = `Your donation status has been updated to ${newStatus.replace('_', ' ').toLowerCase()}.`;
+      if (newStatus === 'RECEIVED') {
+        const actingNgo = await prisma.ngo.findUnique({ where: { userId: user.id } });
+        donorMessage = `Your donation has been successfully received${actingNgo ? ` by ${actingNgo.ngoName}` : ''}. Thank you for your generosity!`;
+      }
+      
+      await prisma.notification.create({
+        data: {
+          userId: updated.donorId,
+          type: 'DONATION_STATUS_UPDATE' as any,
+          title: newStatus === 'RECEIVED' ? 'Donation Received!' : `Donation ${newStatus.replace('_', ' ').toLowerCase()}`,
+          message: donorMessage,
+          link: `/donor/donations/${donationId}`,
+        },
+      });
+    }
+
+    // Notify assigned NGO if they didn't make the change
+    if (updated.ngoId) {
+      const assignedNgo = await prisma.ngo.findUnique({ where: { id: updated.ngoId } });
+      if (assignedNgo && assignedNgo.userId !== user.id) {
+        await prisma.notification.create({
+          data: {
+            userId: assignedNgo.userId,
+            type: 'DONATION_STATUS_UPDATE' as any,
+            title: `Donation ${newStatus.replace('_', ' ').toLowerCase()}`,
+            message: `A donation assigned to you was updated to ${newStatus.replace('_', ' ').toLowerCase()}.`,
+            link: `/ngo/donations`,
+          },
+        });
+      }
+    }
 
     return { success: true, donation: updated };
   } catch (error: any) {
