@@ -12,7 +12,7 @@ const api = {
     let data: any = null;
 
     if (url === '/auth/me') {
-      data = await authActions.getCurrentUser();
+      data = await authActions.ensureDbUser();
       if (!data) throw new Error('Not authenticated');
     } else if (url === '/donations/stats') {
       data = await donationsActions.getDonorStats();
