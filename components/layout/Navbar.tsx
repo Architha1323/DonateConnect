@@ -231,8 +231,38 @@ export default function Navbar() {
                     {link.label}
                   </Link>
                 ))}
-                {!isAuthenticated && (
-                  <div className="flex flex-col gap-2 mt-4">
+                {isAuthenticated && user ? (
+                  <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
+                    <div className="flex items-center gap-3 px-2 pb-4">
+                      <Avatar className="h-10 w-10 border-2 border-emerald-500/30">
+                        <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-semibold">
+                          {user.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-sm">{user.name}</span>
+                        <span className="text-xs text-muted-foreground line-clamp-1">{user.email}</span>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="justify-start w-full" asChild onClick={() => setOpen(false)}>
+                      <Link href={getDashboardPath(user.role)}>
+                        <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+                      </Link>
+                    </Button>
+                    <Button variant="outline" className="justify-start w-full" asChild onClick={() => setOpen(false)}>
+                      <Link href={`/${user.role.toLowerCase()}/profile`}>
+                        <User className="mr-2 h-4 w-4" /> Profile
+                      </Link>
+                    </Button>
+                    <Button variant="outline" className="justify-start w-full text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30" onClick={() => { setOpen(false); handleLogout(); }}>
+                      <LogOut className="mr-2 h-4 w-4" /> Logout
+                    </Button>
+                    <div className="mt-2">
+                      <DonateButton className="w-full" onClick={() => setOpen(false)} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
                     <Button variant="outline" asChild onClick={() => setOpen(false)}><Link href="/login">Sign In</Link></Button>
                     <DonateButton onClick={() => setOpen(false)} />
                   </div>
